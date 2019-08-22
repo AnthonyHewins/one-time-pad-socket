@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::net::Ipv4Addr;
 use structopt::StructOpt;
 
-mod xorsocket;
+mod socket;
 
 #[derive(StructOpt)]
 #[structopt(name = "1timepad socket", about = "Send data securely after XOR'ing it")]
@@ -33,7 +33,7 @@ fn main() {
 
     if args.send.is_some() {
 
-        xorsocket::ftp::serve(
+        socket::ftp::serve(
             args.send.unwrap(),
             args.ip.unwrap_or_else(|| Ipv4Addr::new(0,0,0,0)),
             args.port.unwrap_or(0)
@@ -41,7 +41,7 @@ fn main() {
 
     } else if args.receive {
 
-        xorsocket::ftp::retrieve(
+        socket::ftp::retrieve(
             args.ip.expect("Must specify IP to get a file"),
             args.port.unwrap_or(80)
         );
