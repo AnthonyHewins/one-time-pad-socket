@@ -1,30 +1,61 @@
-use std::io::{Error, ErrorKind, Read, };
+use std::convert::TryInto;
+use std::io::{
+    BufWriter,
+    Error,
+    ErrorKind,
+    Read,
+    Write,
+    SeekFrom,
+    Seek
+};
 
 use super::Socket;
 
+// TODO: make it handle more than 8KiB
+// TODO: draining the key needs more safeguards
+
 impl Socket {
-    pub(super) fn unshift_bytes(&mut self, bytes: usize) -> [u8; Socket::BUFSIZE] {
-        let mut buf: [u8; Socket::BUFSIZE] = [0; Socket::BUFSIZE];
-        match self.filelock.file.read(&mut buf) {
-            Err(e) => panic!("Couldn't read from keyfile: {}", e),
-            Ok(read_bytes) => {
-                if read_bytes != bytes { panic!("Couldn't read enough bytes") }
-            }
-        };
-        buf
+    pub(super) fn xor(&self, contents: &[u8], encrypted: &mut [u8]) -> Result<(), Error>{
+        let len = contents.len();
+        self.check_len(len)?;
+
+        for i in 0..len {
+            encrypted[i] = self.key[i] ^ contents[i];
+        }
+
+        Ok(())
     }
 
     pub(super) fn check_len(&self, len: usize) -> Result<(), Error> {
-        if len <= Socket::BUFSIZE {
-            return Ok(());
-        } else {
-            Err(Error::new(
-                ErrorKind::Other, format!("can only send up to {}B", Socket::BUFSIZE)
-            ))
+        if len > Socket::BUFSIZE {
+            return Err(Error::new(
+                ErrorKind::Other,
+                format!("can only send up to {}B. Will be fixed in the future.", Socket::BUFSIZE)
+            ));
         }
+
+        let keysize = self.key.len();
+        if len <= keysize {
+            return Err(Error::new(
+                ErrorKind::UnexpectedEof,
+                format!("bufsize is {} but key is only {}", len, keysize)
+            ));
+        }
+
+        Ok(())
     }
 
-    pub(super) fn clear_key(&self, bytes: usize) -> usize {
-        self.filelock.file.seek(SeekFrom::Start(bytes));
+    pub(super) fn drain_key(&mut self, len: usize) {
+        self.key.drain(0..len);
+        let mut stream = BufWriter::new(&self.filelock.file);
+        self.key.iter().map(|i| stream.write_all(&[*i]));
     }
+
+    //pub(super) fn clear_key(&self, bytes: usize) -> usize {
+    //    let mut tmp = [0; Socket::BUFSIZE];
+    //    self.filelock.file.seek(SeekFrom::Start(bytes.try_into().unwrap()));
+
+    //    let bytes_read = self.filelock.file.read(&mut tmp);
+    //    self.filelock.file.write_all
+    //}
 }

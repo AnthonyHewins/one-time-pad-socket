@@ -1,18 +1,19 @@
 extern crate file_lock;
 
-use std::io::Error;
+use std::io::{Read, Error};
 use std::net::{ToSocketAddrs, TcpStream};
 use std::path::PathBuf;
 
 use file_lock::FileLock;
 
 pub mod ftp;
-mod write;
+mod io;
 mod internals;
 
 pub struct Socket {
     filelock: FileLock,
-    socket: TcpStream
+    socket: TcpStream,
+    key: Vec::<u8>
 }
 
 impl Socket {
@@ -23,8 +24,12 @@ impl Socket {
 impl Socket {
     pub fn new<P: Into<PathBuf>>(socket: TcpStream, key: P) -> Result<Socket, Error> {
         let path = key.into();
-        let filelock = FileLock::lock(path.to_str().unwrap(), true, true)?;
-        Ok( Socket { filelock: filelock, socket: socket } )
+
+        let mut filelock = FileLock::lock(path.to_str().unwrap(), true, true)?;
+        let mut buf = Vec::<u8>::new();
+        filelock.file.read_to_end(&mut buf);
+
+        Ok( Socket { filelock: filelock, socket: socket, key: buf } )
     }
 
     pub fn connect<S: ToSocketAddrs, P: Into<PathBuf>>(addr: S, key: P) -> Result<Socket, Error> {
