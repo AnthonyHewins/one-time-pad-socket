@@ -20,10 +20,13 @@ impl Read for Socket {
     }
 }
 
+
 #[cfg(test)]
 mod tests {
     extern crate util;
     use super::*;
+
+    use std::thread;
 
     fn copy_1timepad(from: &PathBuf) -> PathBuf {
         let copy_file = PathBuf::from("/tmp/rust_key_copy");
@@ -47,7 +50,6 @@ mod tests {
         let (ref mut server, ref mut client) = socket_client_server();
 
         let write = b"abc";
-        server.write(write);
 
         //let mut read: [u8; 3] = [0; 3];
         //client.read(&mut read);
@@ -60,3 +62,4 @@ mod tests {
 
     }
 }
+

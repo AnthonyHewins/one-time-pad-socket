@@ -1,17 +1,16 @@
 extern crate file_lock;
 
 use std::io::{Read, Error};
+use std::fs::File;
 use std::net::{ToSocketAddrs, TcpStream};
 use std::path::PathBuf;
-
-use file_lock::FileLock;
 
 pub mod ftp;
 mod io;
 mod internals;
 
 pub struct Socket {
-    filelock: FileLock,
+    file: PathBuf,
     socket: TcpStream,
     key: Vec::<u8>
 }
@@ -25,11 +24,10 @@ impl Socket {
     pub fn new<P: Into<PathBuf>>(socket: TcpStream, key: P) -> Result<Socket, Error> {
         let path = key.into();
 
-        let mut filelock = FileLock::lock(path.to_str().unwrap(), true, true)?;
         let mut buf = Vec::<u8>::new();
-        filelock.file.read_to_end(&mut buf)?;
+        File::open(&path)?.read_to_end(&mut buf)?;
 
-        Ok( Socket { filelock: filelock, socket: socket, key: buf } )
+        Ok( Socket { file: path, socket: socket, key: buf } )
     }
 
     pub fn connect<S: ToSocketAddrs, P: Into<PathBuf>>(addr: S, key: P) -> Result<Socket, Error> {
@@ -42,12 +40,20 @@ mod tests {
     extern crate util;
 
     use super::*;
+    use util::{net::ClientServer, fs::TmpFile};
+
+    fn match_fields(sock: Socket, tmp: &TmpFile) {
+        assert_eq!(sock.file, tmp.path);
+        assert_eq!(sock.key, tmp.bytes);
+    }
 
     #[test]
     fn new_works() {
-        let cs = util::net::ClientServer::new();
-        let tmp = util::fs::TmpFile::new();
-        Socket::new(cs.server, tmp.path).unwrap();
+        let cs = ClientServer::new();
+        let tmp = TmpFile::new();
+
+        let socket = Socket::new(cs.server, &tmp.path).unwrap();
+        match_fields(socket, &tmp);
     }
 
     #[test]
@@ -55,9 +61,11 @@ mod tests {
         let tmp = util::fs::TmpFile::new();
 
         let addr = util::net::mock_server();
-        Socket::connect(addr, &tmp.path).unwrap();
-
+        let socket = Socket::connect(addr, &tmp.path).unwrap();
+        match_fields(socket, &tmp);
+        
         let addr = util::net::mock_server();
-        Socket::connect(addr.to_string(), &tmp.path).unwrap();
+        let socket = Socket::connect(addr, &tmp.path).unwrap();
+        match_fields(socket, &tmp);
     }
 }
