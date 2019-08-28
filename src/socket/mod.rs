@@ -27,7 +27,7 @@ impl Socket {
 
         let mut filelock = FileLock::lock(path.to_str().unwrap(), true, true)?;
         let mut buf = Vec::<u8>::new();
-        filelock.file.read_to_end(&mut buf);
+        filelock.file.read_to_end(&mut buf)?;
 
         Ok( Socket { filelock: filelock, socket: socket, key: buf } )
     }

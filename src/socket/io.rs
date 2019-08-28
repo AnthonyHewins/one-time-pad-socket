@@ -1,4 +1,4 @@
-use std::io::{BufReader, Read, Result, Write};
+use std::io::{Read, Result, Write};
 
 use super::*;
 
@@ -22,5 +22,41 @@ impl Read for Socket {
 
 #[cfg(test)]
 mod tests {
+    extern crate util;
+    use super::*;
+
+    fn copy_1timepad(from: &PathBuf) -> PathBuf {
+        let copy_file = PathBuf::from("/tmp/rust_key_copy");
+        std::fs::copy(from, &copy_file);
+        copy_file
+    }
+ 
+    fn socket_client_server() -> (Socket, Socket) {
+        let tmp = util::fs::TmpFile::new();
+        let cs = util::net::ClientServer::new();
+        let copy = copy_1timepad(&tmp.path);
+
+        (
+            Socket::new(cs.server, tmp.path).unwrap(),
+            Socket::new(cs.client, copy).unwrap()
+        )
+    }
     
+    #[test]
+    fn test_conversation() {
+        let (ref mut server, ref mut client) = socket_client_server();
+
+        let write = b"abc";
+        server.write(write);
+
+        //let mut read: [u8; 3] = [0; 3];
+        //client.read(&mut read);
+
+        //assert_eq!(&read, write);
+    }
+
+    #[test]
+    fn test_write() {
+
+    }
 }

@@ -1,12 +1,8 @@
-use std::convert::TryInto;
 use std::io::{
     BufWriter,
     Error,
     ErrorKind,
-    Read,
     Write,
-    SeekFrom,
-    Seek
 };
 
 use super::Socket;
