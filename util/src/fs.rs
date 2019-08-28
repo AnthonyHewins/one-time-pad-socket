@@ -13,7 +13,7 @@ pub struct TmpFile {
 
 impl TmpFile {
     pub fn new() -> TmpFile {
-        let path = TmpFile::rand_path();
+        let path = format!("/tmp/{}", TmpFile::rand_path());
 
         let mut f = File::create(&path).unwrap();
         
