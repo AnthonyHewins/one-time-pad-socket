@@ -2,6 +2,8 @@ use std::io::{Read, Result, Write};
 
 use super::*;
 
+// TODO: use write_all so it supports Vec<u8>
+
 impl Write for Socket {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
         let mut encrypted: [u8; Socket::BUFSIZE] = [0; Socket::BUFSIZE];
@@ -20,7 +22,7 @@ impl Read for Socket {
     }
 }
 
-
+/*
 #[cfg(test)]
 mod tests {
     extern crate util;
@@ -47,14 +49,10 @@ mod tests {
     
     #[test]
     fn test_conversation() {
-        let (ref mut server, ref mut client) = socket_client_server();
+        let (mut server, mut client) = socket_client_server();
 
-        let write = b"abc";
-
-        //let mut read: [u8; 3] = [0; 3];
-        //client.read(&mut read);
-
-        //assert_eq!(&read, write);
+        let send = thread::spawn(move || server.write(b"str"));
+        send.join();
     }
 
     #[test]
@@ -62,4 +60,4 @@ mod tests {
 
     }
 }
-
+*/

@@ -44,8 +44,9 @@ impl Socket {
 
     pub(super) fn drain_key(&mut self, len: usize) {
         self.key.drain(0..len);
-        let mut stream = BufWriter::new(File::open(&self.file).unwrap());
-        self.key.iter().map(|i| stream.write_all(&[*i]));
+
+        let mut truncated_file = BufWriter::new(File::create(&self.file).unwrap());
+        self.key.iter().for_each(|i| truncated_file.write_all(&[*i]).unwrap());
     }
 }
 
@@ -59,14 +60,14 @@ mod tests {
         let cs = util::net::ClientServer::new();
         Socket::new(cs.server, tmp.path).unwrap()
     }
-    
+
     #[test]
     fn test_xor_happy_path() {
         let socket = new_socket();
 
         let mut plaintext: [u8; 8] = [0; 8];
         let mut cipher: [u8; 8] = [0; 8];
-        socket.xor(&plaintext, &mut cipher);
+        socket.xor(&plaintext, &mut cipher).unwrap();
 
         // Encrypt plaintext to test if it worked
         for i in 0..plaintext.len() {
@@ -101,6 +102,7 @@ mod tests {
         assert_eq!(socket.key.len(), original - 3);
     }
 
+    #[test]
     fn it_drains_keyfile_bytes() {
         let mut socket = new_socket();
 

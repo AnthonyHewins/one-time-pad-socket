@@ -3,6 +3,8 @@ use std::net::Ipv4Addr;
 use structopt::StructOpt;
 
 mod socket;
+mod ftp;
+mod listener;
 
 #[derive(StructOpt)]
 #[structopt(name = "1timepad socket", about = "Send data securely after XOR'ing it")]
@@ -33,7 +35,8 @@ fn main() {
 
     if args.send.is_some() {
 
-        socket::ftp::serve(
+        /*
+        ftp::serve(
             args.send.unwrap(),
             args.ip.unwrap_or_else(|| Ipv4Addr::new(0,0,0,0)),
             args.port.unwrap_or(0)
@@ -41,11 +44,11 @@ fn main() {
 
     } else if args.receive {
 
-        socket::ftp::retrieve(
+        ftp::retrieve(
             args.ip.expect("Must specify IP to get a file"),
             args.port.unwrap_or(80)
         );
-
+*/
     } else {
 
         println!("No command specified. Specify the -s or -r flag. Exiting.");

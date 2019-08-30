@@ -1,13 +1,12 @@
-extern crate file_lock;
-
 use std::io::{Read, Error};
 use std::fs::File;
 use std::net::{ToSocketAddrs, TcpStream};
 use std::path::PathBuf;
 
-pub mod ftp;
 mod io;
 mod internals;
+
+// TODO: make it lock the file
 
 pub struct Socket {
     file: PathBuf,
@@ -17,10 +16,8 @@ pub struct Socket {
 
 impl Socket {
     /// BUFSIZE is 8KiB
-    const BUFSIZE: usize = 8 * 1_024 * 1_024;
-}
+    pub const BUFSIZE: usize = 8 * 1_024 * 1_024;
 
-impl Socket {
     pub fn new<P: Into<PathBuf>>(socket: TcpStream, key: P) -> Result<Socket, Error> {
         let path = key.into();
 
