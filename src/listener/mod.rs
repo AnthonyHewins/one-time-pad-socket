@@ -1,4 +1,4 @@
-use std::io::{self, Error};
+use std::io;
 use std::net::{ToSocketAddrs, TcpListener, SocketAddr};
 use std::path::PathBuf;
 

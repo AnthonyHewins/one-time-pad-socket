@@ -16,7 +16,7 @@ pub struct Socket {
 
 impl Socket {
     /// BUFSIZE is 8KiB
-    pub const BUFSIZE: usize = 8 * 1_024 * 1_024;
+    pub const BUFSIZE: usize = 8 * 1_000 * 1_000;
 
     pub fn new<P: Into<PathBuf>>(socket: TcpStream, key: P) -> Result<Socket, Error> {
         let path = key.into();
