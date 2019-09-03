@@ -3,19 +3,19 @@ use std::io::{stdout, Write, BufWriter};
 use rand::rngs::{OsRng};
 use rand::RngCore;
 
-fn to_stdout(size: usize) {
+pub fn to_stdout(kb_size: usize) -> std::io::Result<()> {
     let mut rng = OsRng::new().unwrap();
 
-    let bufsize = 8_000_000;
-    let mut buf: [u8; bufsize] = [0; bufsize];
-    while size > 0 {
-        rng.fill_bytes(&mut buf);
-        bufwrite.write(&buf);
+    if (kb_size > 100) {
+        panic!("Too big, pick something smaller than 100");
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
+    let mut buf: [u8; 1024] = [0; 1024];
+    let mut out = stdout();
+    for _ in 0..kb_size {
+        rng.fill_bytes(&mut buf);
+        out.write(&buf)?;
+    }
+
+    Ok(())
 }

@@ -22,7 +22,8 @@ impl Socket {
         let path = key.into();
 
         let mut buf = Vec::<u8>::new();
-        File::open(&path)?.read_to_end(&mut buf)?;
+        let mut f = File::open(&path).expect("Key was not able to be opened");
+        f.read_to_end(&mut buf).expect("Failed reading keyfile into buffer");
 
         Ok( Socket { file: path, socket: socket, key: buf } )
     }

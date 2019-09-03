@@ -11,9 +11,13 @@ mod keygen;
 #[structopt(name = "1timepad socket", about = "Send data securely after XOR'ing it")]
 struct Cli {
     /// Where the 1 time pad is stored
-    #[structopt(default_value = "~/.onetimepad/key", short, long, help = "Override key location")]
+    #[structopt(default_value = "~/.onetimepad/key.otp", short, long, help = "Override key location")]
     key: PathBuf,
 
+    /// Generate a key
+    #[structopt(long, help = "Generate a key of KEYGEN kilobytes in size.")]
+    keygen: Option<usize>,
+    
     /// Send flag
     #[structopt(short, long, help = "Send a file")]
     send: Option<PathBuf>,
@@ -57,6 +61,10 @@ fn main() {
             args.key
         );
 
+    } else if args.keygen.is_some() {
+
+        keygen::to_stdout(args.keygen.unwrap());
+        
     } else {
 
         println!("No command specified. Specify the -s or -r flag. Exiting.");
